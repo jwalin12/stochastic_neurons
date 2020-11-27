@@ -2,8 +2,13 @@ import numpy as np
 from scipy.stats import vonmises
 
 
+def gen_random_spikes(cycleTime, dt, shape = (1,)):
+    return fit_time_to_dt(np.random.random(shape)*cycleTime, dt, cycleTime)
+
+
+
 def time_to_phase(time, cycleTime):
-    return (time%cycleTime)*np.pi*2
+    return ((time%cycleTime) / cycleTime)*(np.pi*2)
 
 def phase_to_time(phase, cycleTime):
     return phase%(np.pi*2)*cycleTime
@@ -11,8 +16,8 @@ def phase_to_time(phase, cycleTime):
 
 """makes time fitted to granularity of steps"""
 def fit_time_to_dt(time, dt, cycleTime):
-    if((time%cycleTime)%dt != 0):
-        time += (dt - (time%cycleTime)%dt)
+
+    time += (dt - (time%cycleTime)%dt)
     return time
 
 
