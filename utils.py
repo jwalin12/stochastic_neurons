@@ -5,7 +5,10 @@ from scipy.stats import vonmises
 def gen_random_spikes(cycleTime, dt, shape = (1,)):
     return fit_time_to_dt(np.random.random(shape)*cycleTime, dt, cycleTime)
 
-
+def form_matrix(S):
+    W = S.dot(S.conj().T) / S.shape[1]
+    W = W - np.diag(np.diag(W))
+    return W
 
 def time_to_phase(time, cycleTime):
     return ((time%cycleTime) / cycleTime)*(np.pi*2)
