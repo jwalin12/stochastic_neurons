@@ -16,6 +16,53 @@ def time_to_phase(time, cycleTime):
 def phase_to_time(phase, cycleTime):
     return phase%(np.pi*2)*cycleTime
 
+"arg max learning rule"
+
+
+
+
+def vonmises_similarity(phase, input_phase, kappa=1):
+    return np.exp(kappa * (np.cos(phase - input_phase) - 1))
+
+
+def find_weights(patterns, k, resolution=2 ** 12):
+    P, N = patterns.shape
+    phis = []
+    A = []
+    for i in range(N):
+        for j in range(N):
+            if i == j:
+                phis.append(0)
+                A.append(0)
+            else:
+                phi = np.linspace(-np.pi, np.pi, num=resolution)
+                dphi = np.angle(patterns[:, i:i + 1] / patterns[:, j:j + 1])
+                obj = np.sum(vonmises_similarity(phase=np.angle(patterns[:, i:i + 1]),
+                                                 input_phase=np.angle(patterns[:, j:j + 1]) + phi[None, :],
+                                                 kappa=k), axis=0)
+                # obj = np.sum(np.cos(np.angle(patterns[:, i:i + 1]) - (np.angle(patterns[:, j:j + 1]) + phi[None, :])),
+                #              axis=0)
+                phi_max = np.argmax(obj)
+                phi_max = phi[phi_max]
+                phis.append(phi_max)
+                A.append(np.sum(vonmises_similarity(phase=np.angle(patterns[:, i:i + 1]),
+                                           input_phase=np.angle(patterns[:, j:j + 1]) + phi_max,
+                                           kappa=k)))
+    phis = np.array(phis).reshape((N, N))
+    A = np.array(A).reshape((N, N))
+    return A * np.exp(1j * phis)
+
+
+def random_phasors(N, M, K):
+    phases = np.random.uniform(0, 2 * np.pi, size=(N, M))
+    idicies = np.stack([np.random.choice(range(N), replace=False, size=K) for i in range(M)], axis=0)
+    M = np.zeros((N, M))
+
+    for i, idx in enumerate(idicies):
+        M[idx, i] = 1
+    S = np.exp(1j * phases) * M
+    S = S / (np.abs(S) + 10 ** -6)
+    return S
 
 """makes time fitted to granularity of steps"""
 def fit_time_to_dt(time, dt, cycleTime):
