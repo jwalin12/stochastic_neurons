@@ -10,11 +10,23 @@ def form_matrix(S):
     W = W - np.diag(np.diag(W))
     return W
 
+def make_delay_positive(a):
+    return np.where(a >= 0, a, 2. * np.pi + a)
+
 def time_to_phase(time, cycleTime):
+    cycleTime = float(cycleTime)
     return ((time%cycleTime) / cycleTime)*(np.pi*2)
 
 def phase_to_time(phase, cycleTime):
     return phase%(np.pi*2)*cycleTime
+
+def phase_noise(z, kappa=0.1, tol = 10):
+    noise = np.random.vonmises(mu=0, kappa=kappa, size=z.shape)
+    z_orig = z
+    z_new = np.exp(1j*(np.angle(z) + noise))
+    # if complex_difference(z_orig, z_new) < tol:
+    #     return phase_noise(z_orig, kappa=0.1, tol = tol)
+    return z_new
 
 "arg max learning rule"
 
