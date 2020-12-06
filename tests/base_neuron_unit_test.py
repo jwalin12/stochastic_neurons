@@ -17,7 +17,7 @@ input_spikes = []
 while time < sim_len:
     spike_times = gen_random_spikes(cycleTime, dt, shape = (nDim,1))
     input_spikes.append(spike_times)
-    output_spikes.append(neuron.forward(spike_times,weights))
+    output_spikes.append(neuron.forward(spike_times,weights, np.zeros(len(weights))))
     time += cycleTime
 
 
