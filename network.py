@@ -52,8 +52,8 @@ class Network:
         for i in range(num_cycles):
             print(i)
             self.step(self.last_spikes)
-
-        difference = np.abs(input_pattern - time_to_phase(self.last_spikes))
+        print(self.last_spikes)
+        difference = np.abs(input_pattern - time_to_phase(self.last_spikes,self.cycleTime))
         print(np.cos(difference).sum()/len(input_pattern))
 
 

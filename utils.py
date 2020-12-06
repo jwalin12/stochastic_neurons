@@ -15,7 +15,7 @@ def make_delay_positive(a):
 
 def time_to_phase(time, cycleTime):
     cycleTime = float(cycleTime)
-    return ((time%cycleTime) / cycleTime)*(np.pi*2)
+    return ((np.array(time)%cycleTime) / cycleTime)*(np.pi*2)
 
 def phase_to_time(phase, cycleTime):
     return phase%(np.pi*2)*cycleTime

@@ -23,7 +23,7 @@ corrupted_phase = np.angle(corrupted)
 
 W = find_weights(patterns,4, 2**9)
 network = Network(N,cycleTime,dt, W)
-network.run_simulation(corrupted_phase[0],10)
+network.run_simulation(corrupted_phase[0],num_cycles)
 
 
 
