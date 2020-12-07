@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import vonmises
+from scipy.sparse import random
 
 
 def gen_random_spikes(cycleTime, dt, shape = (1,)):
@@ -63,6 +64,25 @@ def find_weights(patterns, k, resolution=2 ** 12):
     phis = np.array(phis).reshape((N, N))
     A = np.array(A).reshape((N, N))
     return A * np.exp(1j * phis)
+
+def get_phasor_vector(N, K):
+    """
+    Return a vector of size N with K % sparsity. The phasors are evenly spaced and sequential over N positions.
+    N: Size of vector
+    K: sparsity constraint [0,1)
+    """
+    # Phase vector with evenly spaced phasors
+    phases = np.linspace(0, 1, num=N)
+    patterns = np.exp(1j * phases * 2 * np.pi) # Converts the vectors into phasors
+
+    # Binary vector with K% sparsity
+    vec = random(1, N, density=K)
+    vec.data[:] = 1
+    vec = np.array(vec.todense().flat)
+    
+    # Phasor value at index according to vec
+    out = np.array([patterns[i] if vec[i] else 0 for i in range(N)])
+    return out
 
 
 def random_phasors(N, M, K):
