@@ -49,18 +49,22 @@ def find_weights(patterns, k, resolution=2 ** 12):
                 A.append(0)
             else:
                 phi = np.linspace(-np.pi, np.pi, num=resolution)
-                dphi = np.angle(patterns[:, i:i + 1] / patterns[:, j:j + 1])
-                obj = np.sum(vonmises_similarity(phase=np.angle(patterns[:, i:i + 1]),
-                                                 input_phase=np.angle(patterns[:, j:j + 1]) + phi[None, :],
-                                                 kappa=k), axis=0)
-                # obj = np.sum(np.cos(np.angle(patterns[:, i:i + 1]) - (np.angle(patterns[:, j:j + 1]) + phi[None, :])),
-                #              axis=0)
-                phi_max = np.argmax(obj)
-                phi_max = phi[phi_max]
-                phis.append(phi_max)
-                A.append(np.sum(vonmises_similarity(phase=np.angle(patterns[:, i:i + 1]),
+                if(patterns[:, j:j + 1] == 0):
+                    W_ij = 0
+                else:
+                    dphi = np.angle(patterns[:, i:i + 1] / patterns[:, j:j + 1])
+                    obj = np.sum(vonmises_similarity(phase=np.angle(patterns[:, i:i + 1]),
+                                                     input_phase=np.angle(patterns[:, j:j + 1]) + phi[None, :],
+                                                     kappa=k), axis=0)
+                    # obj = np.sum(np.cos(np.angle(patterns[:, i:i + 1]) - (np.angle(patterns[:, j:j + 1]) + phi[None, :])),
+                    #              axis=0)
+                    phi_max = np.argmax(obj)
+                    phi_max = phi[phi_max]
+                    phis.append(phi_max)
+                    W_ij = np.sum(vonmises_similarity(phase=np.angle(patterns[:, i:i + 1]),
                                            input_phase=np.angle(patterns[:, j:j + 1]) + phi_max,
-                                           kappa=k)))
+                                           kappa=k))
+                A.append(W_ij)
     phis = np.array(phis).reshape((N, N))
     A = np.array(A).reshape((N, N))
     return A * np.exp(1j * phis)
