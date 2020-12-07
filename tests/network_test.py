@@ -17,7 +17,7 @@ dt = 0.0001
 num_cycles = 5
 
 # No sparsity enforced --> Are we going to ignore that aspect of this model?
-phases = np.random.uniform(size=(num_patterns, N)) # Generates num_patterns random vectors
+phases = np.random.uniform(size=(num_patterns, N)) # Generates num_patterns random vectors (M x N)
 # print(f'phases: {phases}')
 patterns = np.exp(1j * phases * 2 * np.pi) # Converts the vectors into phasors
 # print(f'patterns: {patterns}')

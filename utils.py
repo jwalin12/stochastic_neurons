@@ -88,6 +88,31 @@ def get_phasor_vector(N, K):
     out = np.array([patterns[i] if vec[i] else 0 for i in range(N)])
     return out
 
+def get_rgb_from_phasor(decoded_vector, num_vals):
+    """
+    Return a vector of size N with K % sparsity. The phasors are evenly spaced and sequential over N positions.
+    N: Size of vector
+    K: sparsity constraint [0,1)
+    """
+    # Get angle from decoded
+    decoded_phase = np.angle(decoded_vector).tolist()[0]
+    print("decoded_phase: ", decoded_phase)
+
+    # Angle vector with evenly spaced values
+    phases = np.linspace(-np.pi, np.pi, num=num_vals)
+    print("phases: ", phases)
+
+    out = []
+    # Map from angle to RGB value
+    for x in decoded_phase:
+        i = 0
+        curr = phases[i]
+        while x < curr:
+            curr = phases[i]
+            i += 1
+        out.append(i)
+
+    return np.array(out)
 
 def random_phasors(N, M, K):
     phases = np.random.uniform(0, 2 * np.pi, size=(N, M))

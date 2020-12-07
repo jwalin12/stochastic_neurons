@@ -46,15 +46,18 @@ class Network:
 
 
     def run_simulation(self, input_pattern, num_cycles):
+        print("running simulation")
         #feed in pattern
         self.last_spikes = phase_to_time(input_pattern,self.cycleTime)
         #recur
         for i in range(num_cycles):
-            print(i)
+            print("cycle no: ", i)
             self.step(self.last_spikes)
-        print(self.last_spikes)
+        # print(self.last_spikes)
         difference = np.abs(input_pattern - time_to_phase(self.last_spikes,self.cycleTime))
-        print(np.cos(difference).sum()/len(input_pattern))
+        print("cosine difference: ", np.cos(difference).sum()/len(input_pattern))
+        last_phase = time_to_phase(self.last_spikes,self.cycleTime)
+        return time_to_phase(self.last_spikes,self.cycleTime)
 
 
 
