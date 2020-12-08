@@ -76,8 +76,8 @@ def get_phasor_vector(N, K):
     K: sparsity constraint [0,1)
     """
     # Phase vector with evenly spaced phasors
-    phases = np.linspace(0, 1, num=N)
-    patterns = np.exp(1j * phases * 2 * np.pi) # Converts the vectors into phasors
+    phases = np.linspace(-np.pi, np.pi, num=N)
+    patterns = np.exp(1j * phases ) # Converts the vectors into phasors
 
     # Binary vector with K% sparsity
     vec = random(1, N, density=K)
@@ -87,6 +87,7 @@ def get_phasor_vector(N, K):
     # Phasor value at index according to vec
     out = np.array([patterns[i] if vec[i] else 0 for i in range(N)])
     return out
+
 
 def get_rgb_from_phasor(decoded_vector, num_vals):
     """
@@ -106,10 +107,17 @@ def get_rgb_from_phasor(decoded_vector, num_vals):
     # Map from angle to RGB value
     for x in decoded_phase:
         i = 0
-        curr = phases[i]
-        while x < curr:
-            curr = phases[i]
+        curr = phases[0]
+        while curr < x:
             i += 1
+            curr = phases[i]
+        # print("curr: ", curr)
+        # print("x: ", x)
+        # print("x<curr? ", x < curr)
+        # print("i: ", i)
+        # if i == 128:
+        #     out.append(0)
+        # else:
         out.append(i)
 
     return np.array(out)

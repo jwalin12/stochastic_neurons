@@ -10,7 +10,7 @@ from stochastic_neurons.network import Network
 from pprint import pprint
 
 
-def test_random_tpam_network(K = 0.1, N=128, cycleTime=10, dt=0.0001, num_cycles=5):
+def test_random_tpam_network(K = 0.1, N=128, cycleTime=10, dt=0.0001, num_cycles=3):
     """
     Test random tpam network on 10 mnist images.
     """
@@ -23,19 +23,16 @@ def test_random_tpam_network(K = 0.1, N=128, cycleTime=10, dt=0.0001, num_cycles
     for i in range(10):
         temp = x_train[np.where(y_train == i)]
         temp = temp.reshape((len(temp), 28*28))[:5000]
-        # print(temp[0])
         unique_digits.append(temp[0])
-        # plt.imshow(temp.reshape((len(temp),28,28))[0])
-        # plt.show()
     unique_digits = np.array(unique_digits).T # Data matrix (D x M)
     
     D, M = unique_digits.shape
     print(f'N: {N}, M: {M}, D: {D}')
 
     # Encode values into sparse phasor representation
-    S = random_tpam_s_matrix(M, N, K) # Random codebook of sparse phasors (N x M)
+    S = orthogonal_tpam_s_matrix(M, N, K) # Random codebook of orthogonal sparse phasors (N x M)
     print(f'S: {S.shape}')
-    encoding_matrix = random_tpam_w_encode(S, unique_digits) # Generate encoding matrix (N x D)
+    encoding_matrix = pinv_tpam_w_encode(S, unique_digits) # Generate encoding matrix (N x D)
     print(f'encoding_matrix: {encoding_matrix.shape}')
 
     # Corrupt original data
@@ -59,15 +56,15 @@ def test_random_tpam_network(K = 0.1, N=128, cycleTime=10, dt=0.0001, num_cycles
     print(f'decoding_matrix: {decoding_matrix.shape}')
     decoded_vector = decoding_matrix@result_phase_vec # Final decoded vector (D x 1)
     print(f'decoded_vector: {decoded_vector.shape}')
-    print(f'decoded_vector: {decoded_vector}')
+    # print(f'decoded_vector: {decoded_vector}')
     rgb_decoded_vector = get_rgb_from_phasor(decoded_vector, 256)
-    print(f'rgb_decoded_vector: {rgb_decoded_vector}')
+    # print(f'rgb_decoded_vector: {rgb_decoded_vector}')
     
 
     plt.imshow(decoded_vector.reshape((28,28)))
     plt.show()
 
-def test_encode_decode(K = 0.1, N=128):
+def test_encode_decode(K = 0.1, N=128, pinv=True, ortho=True):
     # Load and unpack mnist dataset
     (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data() # Import MSNIST from tf
     x_train, x_test = x_train / 255.0, x_test / 255.0 # Normalize values
@@ -77,7 +74,6 @@ def test_encode_decode(K = 0.1, N=128):
     for i in range(10):
         temp = x_train[np.where(y_train == i)]
         temp = temp.reshape((len(temp), 28*28))[:5000]
-        # print(temp[0])
         unique_digits.append(temp[0])
         # plt.imshow(temp.reshape((len(temp),28,28))[0])
         # plt.show()
@@ -88,24 +84,41 @@ def test_encode_decode(K = 0.1, N=128):
     print(f'N: {N}, M: {M}, D: {D}')
 
     # Encode values into sparse phasor representation
-    S = random_tpam_s_matrix(M, N, K) # Random codebook of sparse phasors (N x M)
-    print(f'S: {S.shape}')
-    encoding_matrix = random_tpam_w_encode(S, unique_digits) # Generate encoding matrix (N x D)
+    if ortho:
+        S = orthogonal_tpam_s_matrix(M, N, K) # Random codebook of sparse phasors (N x M)
+    else:
+        S = random_tpam_s_matrix(M, N, K) # Random codebook of sparse phasors (N x M)
+    print(f'S: {S}')
+    if pinv:
+        encoding_matrix = pinv_tpam_w_encode(S, unique_digits) # Generate encoding matrix (N x D)
+    else:
+        encoding_matrix = random_tpam_w_encode(S, unique_digits) # Generate encoding matrix (N x D)
     print(f'encoding_matrix: {encoding_matrix.shape}')
 
-    # Decode first vector
+    # Decode vectors
+    # if pinv:
+    #     decoding_matrix = pinv_tpam_w_decode(S, unique_digits, K) # Generate decoding matrix (D x N)
+    # else:
     decoding_matrix = random_tpam_w_decode(S, unique_digits, K) # Generate decoding matrix (D x N)
     print(f'decoding_matrix: {decoding_matrix.shape}')
-    decoded_vector = decoding_matrix@S[:,0] # Final decoded vector (D x 1)
-    print(f'decoded_vector: {decoded_vector.shape}')
-    print(f'decoded_vector: {decoded_vector}')
-    rgb_decoded_vector = get_rgb_from_phasor(decoded_vector, 256)
-    print(f'rgb_decoded_vector: {rgb_decoded_vector}')
-    
+    for i in range(10):
+        encoded_vector = S[:,i]
 
-    plt.imshow(decoded_vector.reshape((28,28)))
-    plt.show()
-    
+        print(f'encoded_vector: {encoded_vector}')
+        phase_encoded_vector = np.angle(encoded_vector)
+        # Offset angle to (0, 2pi]
+        # phase_encoded_vector += np.pi
+        print(f'phase_encoded_vector: {phase_encoded_vector}')
+        decoded_vector = decoding_matrix@phase_encoded_vector # Final decoded vector (D x 1)
+        print(f'decoded_vector: {decoded_vector.shape}')
+        print(f'decoded_vector: {decoded_vector}')
+        rgb_decoded_vector = get_rgb_from_phasor(decoded_vector, 256)
+        print(f'rgb_decoded_vector: {rgb_decoded_vector}')
+        
 
+        plt.imshow(rgb_decoded_vector.reshape((28,28)))
+        plt.show()
+    
 test_encode_decode()
+test_encode_decode(ortho=False)
 # test_random_tpam_network()
