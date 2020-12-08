@@ -149,7 +149,7 @@ def fit_time_to_dt(time, dt, cycleTime):
 
 
 def find_weights_TPAM_learning(S):
-    W = np.matmul(S, np.conj(S.T))
+    W = np.matmul(S, np.conj(S.T))/(len(S))
     W = W - np.diag(np.diag(W))
     return W
 
@@ -166,6 +166,45 @@ def time_to_block(time, block_len, cycleTime):
         idx+=1
         time_counter += time_increment
 
+
+
+
+"""should be Nxm, N is num neurons, m is num patterns"""
+def storkey_learning_weights(S):
+    N = len(S)
+    m = len(S[0])
+    W= np.zeros((N,N))
+    P = S.T
+    for p in P:
+        H = calculate_local_field(W, p)
+        for i in range(N):
+            for j in range(N):
+                W[i][j] = W[i][j] +p[i]*p[j]/N - p[i]*H[j][j]/N - H[i][j]*p[j]/N
+    return W
+
+
+def calculate_local_field(W, p):
+    H = np.zeros(np.shape(W))
+
+    for i in range(len(W)):
+        for j in range(len(W)):
+            H[i][j] = np.dot(W[i],p) - W[i][i]*p[i]-W[i][j]*p[j]
+    return H
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    return S/len(S)
 
 
 

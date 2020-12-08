@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.stats import vonmises
-from stochastic_neurons.utils import fit_time_to_dt, phase_to_time, phase_noise, find_weights, find_weights_TPAM_learning
+from stochastic_neurons.utils import fit_time_to_dt, phase_to_time, phase_noise, find_weights,storkey_learning_weights, find_weights_TPAM_learning
 from stochastic_neurons.stochastic_neuron import stochastic_neuron
 
 import tensorflow as tf
@@ -27,7 +27,7 @@ corrupted_phase = np.angle(corrupted) # Converts from complex number to real val
 # print(f'corrupted_phase: {corrupted_phase}')
 
 
-W = find_weights(patterns,20, 2**9) # Storing patterns
+W = storkey_learning_weights(phases.T) # Storing patterns
 network = Network(N,cycleTime,dt, W) # Initialize network based on weight matrix
 network.run_simulation(corrupted_phase[0],num_cycles, np.angle(patterns[0]))
 

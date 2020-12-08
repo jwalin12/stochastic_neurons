@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import vonmises
 import matplotlib.pyplot as plt
-from stochastic_neurons.utils import fit_time_to_dt, phase_to_time, phase_noise, find_weights, get_rgb_from_phasor, merge_rgb_vectors, find_weights_TPAM_learning
+from stochastic_neurons.utils import fit_time_to_dt, phase_to_time, phase_noise, find_weights, get_rgb_from_phasor, merge_rgb_vectors,storkey_learning_weights
 from stochastic_neurons.stochastic_neuron import stochastic_neuron
 from stochastic_neurons.data_indexing import *
 
@@ -29,7 +29,7 @@ def test_rgb_merge():
         plt.show()
 
 
-def test_random_tpam_network(K = 0.1, N=128, cycleTime=10, dt=0.0001, num_cycles=3, percent1=0.6, arg_max = True, tol = 0.9):
+def test_random_tpam_network(K = 0.1, N=128, cycleTime=10, dt=0.0001, num_cycles=3, percent1=0.7, arg_max = True, tol = 0.9):
     """
     Test random tpam network on 10 mnist images.
     """
@@ -77,9 +77,9 @@ def test_random_tpam_network(K = 0.1, N=128, cycleTime=10, dt=0.0001, num_cycles
     # Find weights, create network, and run simulation
     # TODO: Is S the correct thing to input  here ? - Think so, Jwalin
     if(arg_max):
-        W = find_weights(S.T, 100, 2**9) # Storing patterns
+        W = find_weights(np.angle(S.T), 40, 2**9) # Storing patterns
     else:
-        W = find_weights_TPAM_learning(S)
+        W = storkey_learning_weights(np.angle(S))
     network = Network(N, cycleTime, dt, W) # Initialize network based on weight matrix
     orig_difference = np.abs(phase_encoded_orig_vector - phase_encoded_vector)
     orig_similarity = np.abs(np.exp(1j*orig_difference).sum())/N
@@ -160,5 +160,5 @@ def test_encode_decode(K = 0.1, N=128, pinv=True, ortho=True):
     
 # test_encode_decode()
 # test_encode_decode(ortho=False)
-test_random_tpam_network()
+test_random_tpam_network(arg_max=False)
 # test_rgb_merge()

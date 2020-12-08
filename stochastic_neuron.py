@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.special as sc
 from scipy.stats import vonmises
 from stochastic_neurons.utils import fit_time_to_dt, phase_to_time, time_to_phase
 
@@ -21,8 +22,10 @@ class stochastic_neuron:
             processed_spikes.extend([inp_spike_phases[i]] * (int(10*input_spike_magnitudes[i])))
         if(len(processed_spikes) == 0):
             return 0 #if neuron is disconnected the output doesnt matter
-        input_fit_params = vonmises.fit(processed_spikes)
-        return fit_time_to_dt(vonmises.rvs(kappa = input_fit_params[0], loc = input_fit_params[1]), self.dt, self.cycleTime)
+        input_fit_params = vonmises.fit(processed_spikes, fscale=1)
+        kappa  = max(input_fit_params[0],20)
+
+        return fit_time_to_dt(vonmises.rvs(kappa = kappa, loc = input_fit_params[1]), self.dt, self.cycleTime)
 
 
 
