@@ -23,9 +23,8 @@ class stochastic_neuron:
         if(len(processed_spikes) == 0):
             return 0 #if neuron is disconnected the output doesnt matter
         input_fit_params = vonmises.fit(processed_spikes, fscale=1)
-        kappa  = max(input_fit_params[0],20)
 
-        return fit_time_to_dt(vonmises.rvs(kappa = kappa, loc = input_fit_params[1]), self.dt, self.cycleTime)
+        return fit_time_to_dt(vonmises.rvs(kappa = input_fit_params[0], loc = input_fit_params[1]), self.dt, self.cycleTime)
 
 
 
