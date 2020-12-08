@@ -20,7 +20,7 @@ def time_to_phase(time, cycleTime):
     return ((np.array(time)%cycleTime) / cycleTime)*(np.pi*2)
 
 def phase_to_time(phase, cycleTime):
-    return phase%(np.pi*2)*cycleTime
+    return (phase/(np.pi*2))*cycleTime
 
 def phase_noise(z, kappa=0.1, tol = 10):
     noise = np.random.vonmises(mu=0, kappa=kappa, size=z.shape)
@@ -39,6 +39,10 @@ def vonmises_similarity(phase, input_phase, kappa=1):
     return np.exp(kappa * (np.cos(phase - input_phase) - 1))
 
 
+
+
+
+
 def find_weights(patterns, k, resolution=2 ** 12):
     P, N = patterns.shape
     phis = []
@@ -54,7 +58,6 @@ def find_weights(patterns, k, resolution=2 ** 12):
                     W_ij = 0
                     phis.append(0)
                 else:
-                    dphi = np.angle(patterns[:, i:i + 1] / patterns[:, j:j + 1])
                     obj = np.sum(vonmises_similarity(phase=np.angle(patterns[:, i:i + 1]),
                                                      input_phase=np.angle(patterns[:, j:j + 1]) + phi[None, :],
                                                      kappa=k), axis=0)
@@ -145,6 +148,10 @@ def fit_time_to_dt(time, dt, cycleTime):
     return time
 
 
+def find_weights_TPAM_learning(S):
+    W = np.matmul(S, np.conj(S.T))
+    W = W - np.diag(np.diag(W))
+    return W
 
 
 
