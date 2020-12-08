@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import vonmises
 import matplotlib.pyplot as plt
-from stochastic_neurons.utils import fit_time_to_dt, phase_to_time, phase_noise, find_weights, get_rgb_from_phasor
+from stochastic_neurons.utils import fit_time_to_dt, phase_to_time, phase_noise, find_weights, get_rgb_from_phasor, merge_rgb_vectors
 from stochastic_neurons.stochastic_neuron import stochastic_neuron
 from stochastic_neurons.data_indexing import *
 
@@ -9,8 +9,27 @@ import tensorflow as tf
 from stochastic_neurons.network import Network
 from pprint import pprint
 
+def test_rgb_merge():
+    # Load and unpack mnist dataset
+    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data() # Import MSNIST from tf
+    # x_train, x_test = x_train / 255.0, x_test / 255.0 # Normalize values
 
-def test_random_tpam_network(K = 0.1, N=128, cycleTime=10, dt=0.0001, num_cycles=3):
+    # Gather 10 unique images to store in network
+    unique_digits = []
+    for i in range(10):
+        temp = x_train[np.where(y_train == i)]
+        temp = temp.reshape((len(temp), 28*28))[:5000]
+        unique_digits.append(temp[0])
+    unique_digits = np.array(unique_digits).T # Data matrix (D x M)
+    
+    for i in range(0, 10, 1):
+        merged = merge_rgb_vectors(unique_digits[:,2], unique_digits[:,3], i/10)
+        print(merged)
+        plt.imshow(merged.reshape((28,28)))
+        plt.show()
+
+
+def test_random_tpam_network(K = 0.1, N=128, cycleTime=10, dt=0.0001, num_cycles=3, percent1=0.7):
     """
     Test random tpam network on 10 mnist images.
     """
@@ -36,26 +55,36 @@ def test_random_tpam_network(K = 0.1, N=128, cycleTime=10, dt=0.0001, num_cycles
     print(f'encoding_matrix: {encoding_matrix.shape}')
 
     # Corrupt original data
-    corrupted = phase_noise(unique_digits, kappa = 3) # Adds some corruption --> phasor notation (D x M)
-    print(f'corrupted: {corrupted.shape}')
-    # corrupted_phase = np.angle(corrupted) # Converts from complex number to real valued representation from -pi to pi
-    # print(f'corrupted_phase: {corrupted_phase.shape}')
-    encoded_corrupted_matrix = encoding_matrix@corrupted # corrupted encoded matrix (N, M)
-    print(f'encoded_corrupted_matrix: {encoded_corrupted_matrix.shape}')
-    phase_encoded_corrupted_vec = np.angle(encoded_corrupted_matrix[:,0]) # corrupted pattern to be decoded
+    # corrupted = phase_noise(unique_digits, kappa = 3) # Adds some corruption --> phasor notation (D x M)
+    # print(f'corrupted: {corrupted.shape}')
+    # # corrupted_phase = np.angle(corrupted) # Converts from complex number to real valued representation from -pi to pi
+    # # print(f'corrupted_phase: {corrupted_phase.shape}')
+    # encoded_corrupted_matrix = encoding_matrix@corrupted # corrupted encoded matrix (N, M)
+    # print(f'encoded_corrupted_matrix: {encoded_corrupted_matrix.shape}')
+    # phase_encoded_corrupted_vec = np.angle(encoded_corrupted_matrix[:,0]) # corrupted pattern to be decoded
+
+    # Test a merged 2 and 3 (D x 1)
+    merged = merge_rgb_vectors(unique_digits[:,2], unique_digits[:,3], percent1)
+    plt.imshow(merged.reshape((28,28)))
+    plt.show()
+
+    # Encode the merged vector 
+    encoded_vector = encoding_matrix@merged # (N x 1)
+    phase_encoded_vector = np.angle(encoded_vector) # (N x 1)
 
     # Find weights, create network, and run simulation
     # TODO: Is S the correct thing to input here?
     W = find_weights(S.T, 4, 2**9) # Storing patterns
     network = Network(N, cycleTime, dt, W) # Initialize network based on weight matrix
-    result_phase_vec = network.run_simulation(phase_encoded_corrupted_vec, num_cycles) # Find result based on corrupted phase
+    result_vec = network.run_simulation(phase_encoded_vector, num_cycles) # Find result based on corrupted phase
+    result_phase_vec = np.angle(result_vec)
     print(f'result_phase_vec: {result_phase_vec.shape}')
 
     # Decode final phasor 
     decoding_matrix = random_tpam_w_decode(S, unique_digits, K) # Generate decoding matrix (D x N)
     print(f'decoding_matrix: {decoding_matrix.shape}')
     decoded_vector = decoding_matrix@result_phase_vec # Final decoded vector (D x 1)
-    print(f'decoded_vector: {decoded_vector.shape}')
+    print(f'decoded_vector: {decoded_vector}')
     # print(f'decoded_vector: {decoded_vector}')
     rgb_decoded_vector = get_rgb_from_phasor(decoded_vector, 256)
     # print(f'rgb_decoded_vector: {rgb_decoded_vector}')
@@ -119,6 +148,7 @@ def test_encode_decode(K = 0.1, N=128, pinv=True, ortho=True):
         plt.imshow(rgb_decoded_vector.reshape((28,28)))
         plt.show()
     
-test_encode_decode()
-test_encode_decode(ortho=False)
-# test_random_tpam_network()
+# test_encode_decode()
+# test_encode_decode(ortho=False)
+test_random_tpam_network()
+# test_rgb_merge()

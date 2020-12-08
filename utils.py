@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from scipy.stats import vonmises
 from scipy.sparse import random
 
@@ -49,8 +50,9 @@ def find_weights(patterns, k, resolution=2 ** 12):
                 A.append(0)
             else:
                 phi = np.linspace(-np.pi, np.pi, num=resolution)
-                if(patterns[:, j:j + 1] == 0):
+                if(patterns[:, j:j + 1].any(0)):
                     W_ij = 0
+                    phis.append(0)
                 else:
                     dphi = np.angle(patterns[:, i:i + 1] / patterns[:, j:j + 1])
                     obj = np.sum(vonmises_similarity(phase=np.angle(patterns[:, i:i + 1]),
@@ -88,7 +90,9 @@ def get_phasor_vector(N, K):
     out = np.array([patterns[i] if vec[i] else 0 for i in range(N)])
     return out
 
-
+def merge_rgb_vectors(vec1, vec2, percent1):
+    return percent1*vec1 + (1 - percent1)*vec2
+    
 def get_rgb_from_phasor(decoded_vector, num_vals):
     """
     Return a vector of size N with K % sparsity. The phasors are evenly spaced and sequential over N positions.
@@ -118,7 +122,8 @@ def get_rgb_from_phasor(decoded_vector, num_vals):
         # if i == 128:
         #     out.append(0)
         # else:
-        out.append(i)
+        # invert output
+        out.append(255-i)
 
     return np.array(out)
 
