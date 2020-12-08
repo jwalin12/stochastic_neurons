@@ -58,13 +58,11 @@ def orthogonal_tpam_s_matrix(M, N, phot):
 
     # Available indices in N
     A = np.array(range(N))
-    print("a",A)
 
     for i in range(M):
 
         # Take a random sample of size K from available positions
         indices = np.random.choice(A, K)
-        print(indices)
 
         # Remove indices just used
         A = np.setdiff1d(A, indices)
@@ -121,4 +119,27 @@ def pinv_tpam_w_decode(S, P, K):
     S = np.matrix(S)
     return 1/K * linalg.pinv2(P).T@S.H
 
+def decode_phase_encoded_vector(W_H, vec, phot, N, D):
+    """
+    Decode a phase encoded vector according to the decoding matrix and
+    sparsity constraints.
+    W_H: decoding matrix
+    vec: phase encoded vector
+    phot: percent sparsity
+    N: number of neurons
+    D: dimensionality of data
+    """
+    full_decoded = W_H@vec # Final decoded vector (D x 1)
+    print("full_decoded: ", full_decoded)
 
+    # Find K
+    K = math.floor(phot*N)
+    
+    # Take K values with highest magnitude
+    k_highest = full_decoded.argsort()[-K:][::-1]
+    for i in range(D):
+        if i not in k_highest:
+            full_decoded[i] = 0
+            
+    print("k_decoded: ", full_decoded)
+    return full_decoded

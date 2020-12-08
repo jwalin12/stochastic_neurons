@@ -105,7 +105,7 @@ def get_rgb_from_phasor(decoded_vector, num_vals):
 
     # Angle vector with evenly spaced values
     phases = np.linspace(-np.pi, np.pi, num=num_vals)
-    print("phases: ", phases)
+    # print("phases: ", phases)
 
     out = []
     # Map from angle to RGB value
