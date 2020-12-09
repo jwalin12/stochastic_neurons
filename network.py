@@ -45,34 +45,69 @@ class Network:
         self.last_spikes = next_spikes
 
 
-    def run_simulation(self, input_pattern, num_cycles):
+    def run_simulation(self, input_pattern, num_cycles, orig_pattern):
         print("running simulation")
         #feed in pattern
         self.last_spikes = phase_to_time(input_pattern,self.cycleTime)
         #recur
         for i in range(num_cycles):
             print("cycle no: ", i)
+            difference = np.abs(orig_pattern - time_to_phase(self.last_spikes, self.cycleTime))
+            similarity = np.abs(np.exp(1j*difference).sum())/len(input_pattern)
+            print("similarity: ",similarity)
             self.step(self.last_spikes)
         # print(self.last_spikes)
-        difference = np.abs(input_pattern - time_to_phase(self.last_spikes,self.cycleTime))
-        print("cosine difference: ", np.cos(difference).sum()/len(input_pattern))
-        last_phase = time_to_phase(self.last_spikes,self.cycleTime)
-        return time_to_phase(self.last_spikes,self.cycleTime)
+        last_phase = time_to_phase(self.last_spikes, self.cycleTime)
+        difference = np.abs(orig_pattern - last_phase)
+        similarity =  np.abs(np.exp(1j*difference).sum())/len(input_pattern)
+        print("similarity : ", similarity)
+        return last_phase, similarity
 
 
 
+class HeteroAssociativeNetwork:
+    """
+    simple hetero associative network for returning outputs
+    """
+    def __init__(self, N, D, W):
+        self._neurons = []
+        self._W
+    
+    def run(v_in):
+        """
+        v_in: phasor vector output from the
+        """
+        pass
 
+class HopfieldNetwork:
 
+  def __init__(self, n, num_iterations):
+    self.n = n
+    self.num_iterations = num_iterations
 
+  def store_patterns(self, patterns):
+    V = np.array(patterns).T
+    self.T = (1 / (self.n ** 2)) * V.dot(V.T)
+    np.fill_diagonal(self.T, 0)
+    print("T: ", self.T)
 
+  def recover_pattern(self, V):
+    i = 0
+    converged = False
+    old_energy = np.inf
 
+    while i < self.num_iterations and not converged:
+      new_energy = self._compute_energy(V)
+      V = np.sign(self.T.dot(V))
+      converged = new_energy >= old_energy
+      i += 1
+      old_energy = new_energy
 
+    return V
 
-
-
-
-
-
+  def _compute_energy(self, V):
+    return -0.5 * V.T.dot(self.T).dot(V)
+        
 
 
 

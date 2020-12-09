@@ -47,7 +47,7 @@ def orthogonal_tpam_s_matrix(M, N, phot):
     @returns matrix of random sparse phasors
     """
     # Phase vector with evenly spaced phasors
-    phases = np.linspace(-np.pi, np.pi, num=N)
+    phases = np.linspace(0, 2 * np.pi, num=N)
     patterns = np.exp(1j * phases ) # Converts the vectors into phasors
 
     # Sparse phasor matrix of size N x M
@@ -118,6 +118,18 @@ def pinv_tpam_w_decode(S, P, K):
     # Multiply the pattern matrix by the complex conjugate transpose of the sparse phasor matrix
     S = np.matrix(S)
     return 1/K * linalg.pinv2(P).T@S.H
+    # return S.T@linalg.pinv2(P).T
+
+# def decode_phasor_enc_vec(W_H, vec, phot, N, D):
+#     """
+#     Decode a phase encoded vector according to the decoding matrix and
+#     sparsity constraints.
+#     W_H: decoding matrix
+#     vec: phase encoded vector
+#     phot: percent sparsity
+#     N: number of neurons
+#     D: dimensionality of data
+#     """
 
 def decode_phase_encoded_vector(W_H, vec, phot, N, D):
     """
@@ -129,17 +141,18 @@ def decode_phase_encoded_vector(W_H, vec, phot, N, D):
     N: number of neurons
     D: dimensionality of data
     """
-    full_decoded = W_H@vec # Final decoded vector (D x 1)
-    print("full_decoded: ", full_decoded)
-
     # Find K
     K = math.floor(phot*N)
+
+    full_decoded = 1/K * W_H@vec # Final decoded vector (D x 1)
+    # print("full_decoded: ", full_decoded)
+
     
     # Take K values with highest magnitude
-    k_highest = full_decoded.argsort()[-K:][::-1]
-    for i in range(D):
-        if i not in k_highest:
-            full_decoded[i] = 0
-            
-    print("k_decoded: ", full_decoded)
-    return full_decoded
+    # k_highest = full_decoded.argsort()[-K:][::-1]
+    # for i in range(D):
+    #     if i not in k_highest:
+    #         full_decoded[i] = 0
+
+    # print("k_decoded: ", full_decoded)
+    return full_decoded[0]
