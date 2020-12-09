@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import vonmises
 import matplotlib.pyplot as plt
-from stochastic_neurons.utils import fit_time_to_dt, phase_to_time, phase_noise, find_weights, get_rgb_from_phasor, merge_rgb_vectors,storkey_learning_weights, cosine_similarity
+from stochastic_neurons.utils import fit_time_to_dt, phase_to_time, phase_noise, find_weights, get_rgb_from_phasor, merge_rgb_vectors,storkey_learning_weights, cosine_similarity, make_delay_positive
 from stochastic_neurons.stochastic_neuron import stochastic_neuron
 from stochastic_neurons.data_indexing import *
 
@@ -29,7 +29,7 @@ def test_rgb_merge():
         plt.show()
 
 
-def test_random_tpam_network(K = 0.1, N=128, cycleTime=10, dt=0.0001, num_cycles=3, percent1=0.6, arg_max = True, tol = 0.9):
+def test_random_tpam_network(K = 0.1, N=128, cycleTime=10, dt=0.0001, num_cycles=3, percent1=0.7, arg_max = True, tol = 0.9):
     """
     Test random tpam network on 10 mnist images.
     """
@@ -78,20 +78,22 @@ def test_random_tpam_network(K = 0.1, N=128, cycleTime=10, dt=0.0001, num_cycles
     phase_encoded_orig_vector = np.angle(encoding_matrix@target) # phase notation
 
     # Find weights, create network, and run simulation
-    # TODO: Is S the correct thing to input  here ? - Think so, Jwalin
     if(arg_max):
-        W = find_weights(np.angle(S.T), 40, 2**9) # Storing patterns
+        W = find_weights(S.T, 40, 2**9) # Storing patterns
     else:
-        W = storkey_learning_weights(np.angle(S))
+        W = storkey_learning_weights(S)
     network = Network(N, cycleTime, dt, W) # Initialize network based on weight matrix
     # result_vec = network.run_simulation(phase_encoded_vector, num_cycles) # Find result based on corrupted phase
     # result_phasor_vec = np.angle(result_vec)
     # print(f'result_phasor_vec: {result_vec}')
-    result_vec, similarity = network.run_simulation(phase_encoded_vector, num_cycles, orig_pattern=phase_encoded_orig_vector) # Find result based on corrupted phase, result_vec is a vector of phases
     orig_difference = np.abs(phase_encoded_orig_vector - phase_encoded_vector)
-    orig_similarity = np.abs(np.exp(1j*orig_difference).sum())/N
+    orig_similarity = np.abs(np.exp(1j * orig_difference).sum()) / N
     print("phase_encoded_orig to phase encoded similarity", orig_similarity)
+    result_vec, similarity = network.run_simulation(phase_encoded_vector, num_cycles, orig_pattern=phase_encoded_orig_vector) # Find result based on corrupted phase, result_vec is a vector of phases
+
     print("result_vec to phase_encoded_orig similiarity: ", similarity)
+
+    print("similarity to merge: {}".format(similarity*percent1/(orig_similarity)))
 
     # Convert output phase vector to phasor
     result_phasor_vec = np.exp(1j*result_vec)
@@ -106,11 +108,6 @@ def test_random_tpam_network(K = 0.1, N=128, cycleTime=10, dt=0.0001, num_cycles
     # print(f'decoded_vector: {decoded_vector}')
     rgb_decoded_vector = get_rgb_from_phasor(decoded_vector, 256)
     # print(f'rgb_decoded_vector: {rgb_decoded_vector}')
-    scaled_merging = percent1*(similarity/orig_similarity) #proportional merging of image
-    print(f'scaled merging: {scaled_merging}')
-    merged = merge_rgb_vectors(unique_digits[:,2], unique_digits[:,3], scaled_merging)
-    plt.imshow(merged.reshape((28,28)))
-    plt.show()
 
     print('showing decoded image: ')
     plt.imshow(rgb_decoded_vector.reshape((28,28)))
@@ -275,5 +272,5 @@ def test_two_three_decode(K = 0.1, N=128, pinv=True, ortho=True, percent1=0.7):
 # test_encode_decode(ortho=False)
 # test_random_tpam_network()
 # test_rgb_merge()
-# test_two_three_decode()
-test_random_tpam_network(arg_max=True)
+#test_two_three_decode()
+test_random_tpam_network(num_cycles= 8, arg_max=True)

@@ -7,10 +7,11 @@ from stochastic_neurons.utils import fit_time_to_dt, phase_to_time, time_to_phas
 
 class stochastic_neuron:
 
-    def __init__(self, nDim, cycleTime, dt):
+    def __init__(self, nDim, cycleTime, dt, starting_phase = -1):
         self.nDim = nDim
         self.cycleTime = cycleTime
         self.dt = dt
+        self.last_phase = starting_phase
 
 
     """neuron takes in input spike times. In order to deal with weights effectively, what happens is that the neuron will
@@ -19,12 +20,16 @@ class stochastic_neuron:
         inp_spike_phases = time_to_phase(np.array(input_spikes_times + input_spike_delays), self.cycleTime)
         processed_spikes = []
         for i in range(len(input_spike_magnitudes)):
-            processed_spikes.extend([inp_spike_phases[i]] * (int(10*input_spike_magnitudes[i])))
+            processed_spikes.extend([inp_spike_phases[i]] * int(10*(input_spike_magnitudes[i])))
         if(len(processed_spikes) == 0):
             return 0 #if neuron is disconnected the output doesnt matter
-        input_fit_params = vonmises.fit(processed_spikes, fscale=1)
+        if self.last_phase == -1:
+            input_fit_params = vonmises.fit(processed_spikes, fscale=1)
+        else:
+            input_fit_params = vonmises.fit(processed_spikes,loc = self.last_phase, fscale=1)
+        self.last_phase = vonmises.rvs(kappa = input_fit_params[0], loc = input_fit_params[1])
 
-        return fit_time_to_dt(vonmises.rvs(kappa = input_fit_params[0], loc = input_fit_params[1]), self.dt, self.cycleTime)
+        return phase_to_time(self.last_phase,self.cycleTime)
 
 
 

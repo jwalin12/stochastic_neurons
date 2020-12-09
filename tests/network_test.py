@@ -10,24 +10,21 @@ from stochastic_neurons.network import Network
 from pprint import pprint
 
 
-num_patterns = 8
+num_patterns = 1
 N = 128
 cycleTime = 10
 dt = 0.0001
 num_cycles = 8
 
-# No sparsity enforced --> Are we going to ignore that aspect of this model?
-phases = np.random.uniform(size=(num_patterns, N)) # Generates num_patterns random vectors (M x N)
-# print(f'phases: {phases}')
+# No sparsity enforced --> Are we going to ignore that aspect of this model? - just texting basic network function right now
+phases = np.zeros((num_patterns, N)) # Generates num_patterns random vectors (M x N)
+phases[0][1] = 1
+phases[0][20] = -1
 patterns = np.exp(1j * phases * 2 * np.pi) # Converts the vectors into phasors
 # print(f'patterns: {patterns}')
-corrupted = phase_noise(patterns, kappa = 3) # Adds some corruption --> phasor notation
+corrupted_phase = phase_noise(phases, kappa = 3) # Adds some corruption --> phasor notation
 # print(f'corrupted: {corrupted}')
-corrupted_phase = np.angle(corrupted) # Converts from complex number to real valued representation from -pi to pi
-# print(f'corrupted_phase: {corrupted_phase}')
-
-
-W = storkey_learning_weights(phases.T) # Storing patterns
+W  = find_weights(patterns) # Storing patterns
 network = Network(N,cycleTime,dt, W) # Initialize network based on weight matrix
 network.run_simulation(corrupted_phase[0],num_cycles, np.angle(patterns[0]))
 

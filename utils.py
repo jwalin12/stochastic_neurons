@@ -22,13 +22,9 @@ def time_to_phase(time, cycleTime):
 def phase_to_time(phase, cycleTime):
     return (phase/(np.pi*2))*cycleTime
 
-def phase_noise(z, kappa=0.1, tol = 10):
-    noise = np.random.vonmises(mu=0, kappa=kappa, size=z.shape)
-    z_orig = z
-    z_new = np.exp(1j*(np.angle(z) + noise))
-    # if complex_difference(z_orig, z_new) < tol:
-    #     return phase_noise(z_orig, kappa=0.1, tol = tol)
-    return z_new
+def phase_noise(inp_phase, kappa=0.1, tol = 10):
+    noise = np.random.vonmises(mu=0, kappa=kappa, size = inp_phase.shape)
+    return (inp_phase + noise)%(np.pi*2)
 
 "arg max learning rule"
 
@@ -54,19 +50,16 @@ def find_weights(patterns, k, resolution=2 ** 12):
                 A.append(0)
             else:
                 phi = np.linspace(-np.pi, np.pi, num=resolution)
-                if(patterns[:, j:j + 1].any(0)):
-                    W_ij = 0
-                    phis.append(0)
-                else:
-                    obj = np.sum(vonmises_similarity(phase=np.angle(patterns[:, i:i + 1]),
+
+                obj = np.sum(vonmises_similarity(phase=np.angle(patterns[:, i:i + 1]),
                                                      input_phase=np.angle(patterns[:, j:j + 1]) + phi[None, :],
                                                      kappa=k), axis=0)
                     # obj = np.sum(np.cos(np.angle(patterns[:, i:i + 1]) - (np.angle(patterns[:, j:j + 1]) + phi[None, :])),
                     #              axis=0)
-                    phi_max = np.argmax(obj)
-                    phi_max = phi[phi_max]
-                    phis.append(phi_max)
-                    W_ij = np.sum(vonmises_similarity(phase=np.angle(patterns[:, i:i + 1]),
+                phi_max = np.argmax(obj)
+                phi_max = phi[phi_max]
+                phis.append(phi_max)
+                W_ij = np.sum(vonmises_similarity(phase=np.angle(patterns[:, i:i + 1]),
                                            input_phase=np.angle(patterns[:, j:j + 1]) + phi_max,
                                            kappa=k))
                 A.append(W_ij)
@@ -164,6 +157,7 @@ def time_to_block(time, block_len, cycleTime):
 
 """should be Nxm, N is num neurons, m is num patterns"""
 def storkey_learning_weights(S):
+    S = np.angle(S)
     N = len(S)
     m = len(S[0])
     W= np.zeros((N,N))

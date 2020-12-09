@@ -48,11 +48,13 @@ class Network:
     def run_simulation(self, input_pattern, num_cycles, orig_pattern):
         print("running simulation")
         #feed in pattern
-        self.last_spikes = phase_to_time(input_pattern,self.cycleTime)
+        self.last_spikes = phase_to_time(make_delay_positive(input_pattern),self.cycleTime)
+        inp_phases = time_to_phase(input_pattern, self.cycleTime)
+
         #recur
         for i in range(num_cycles):
             print("cycle no: ", i)
-            difference = np.abs(orig_pattern - time_to_phase(self.last_spikes, self.cycleTime))
+            difference = np.abs(orig_pattern- time_to_phase(self.last_spikes, self.cycleTime))
             similarity = np.abs(np.exp(1j*difference).sum())/len(input_pattern)
             print("similarity: ",similarity)
             self.step(self.last_spikes)

@@ -105,7 +105,7 @@ def pinv_tpam_w_encode(S, P):
     """
 
     # Multiply Sparse phasor matrix by P.T
-    return S@linalg.pinv2(P)
+    return np.matmul(S,linalg.pinv2(P))
 
 def pinv_tpam_w_decode(S, P, K):
     """
